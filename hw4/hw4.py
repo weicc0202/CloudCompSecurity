@@ -24,8 +24,14 @@ def mapper(line):
     """
     Mapper that converts an input line to a feature vector
     """    
-    values = [float(x) for x in line.split(',')]
-    return LabeledPoint(values[-1], values[:-1])
+    feats = line.strip().split(",") 
+    # labels must be at the beginning for LRSGD, it's in the end in our data, so 
+    # putting it in the right place
+    label = feats[len(feats) - 1] 
+    feats = feats[: len(feats) - 1]
+    feats.insert(0,label)
+    features = [ float(feature) for feature in feats ] # need floats
+    return LabeledPoint(label, features)
 
 parsedData = data.map(mapper)
 

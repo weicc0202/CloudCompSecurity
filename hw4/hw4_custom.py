@@ -19,16 +19,18 @@ class MySGD():
     def __init__(self, epoch, lr=1):
         self.epoch = epoch
         self.lr = lr
+    
 
     def sigmoid(self, x):
         return 1.0 / (1.0 + np.exp(-x))
+
 
     def gradient(self, p, w):
         x, y = p.label, p.features
         return -self.sigmoid(-x * np.dot(w, y)) * x * y 
     
     def train(self, data):
-        self.model = np.zeros(4) 
+        self.model = np.zeros(5) 
         for i in range(self.epoch):
             grad = data.map(lambda p: self.gradient(p, self.model)).reduce(lambda x, y: x + y)
             self.model -= self.lr * grad / data.count()
@@ -48,8 +50,14 @@ def mapper(line):
     """
     Mapper that converts an input line to a feature vector
     """    
-    values = [float(x) for x in line.split(',')]
-    return LabeledPoint(values[-1], values[:-1])
+    feats = line.strip().split(",") 
+    # labels must be at the beginning for LRSGD, it's in the end in our data, so 
+    # putting it in the right place
+    label = feats[len(feats) - 1] 
+    feats = feats[: len(feats) - 1]
+    feats.insert(0,label)
+    features = [ float(feature) for feature in feats ] # need floats
+    return LabeledPoint(label, features)
 
 parsedData = data.map(mapper)
 SGD = MySGD(
